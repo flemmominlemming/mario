@@ -111,7 +111,7 @@ castle_chain_image = block_sheet.image_at((192, 256, 16, 16), colorkey = (163, 7
 
 class General():
     def __init__(self):
-        self.level = 3
+        self.level = 1
         self.level_mode = 1
 general = General()
 
@@ -1344,7 +1344,7 @@ class Goal_post(pygame.sprite.Sprite):
         all_sprite_group.add(self)
         goal_post_group.add(self)
 
-        self.width = 4
+        self.width = 2
         self.height = 160
 
         self.color = 'blue'

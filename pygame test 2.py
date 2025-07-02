@@ -423,7 +423,7 @@ under_ground_color_palletes = [1, 1, 2, 1]
 
 class General():
     def __init__(self):
-        self.level = 3
+        self.level = 1
         self.game_end = False
         self.player_start_position_x = 0
         self.player_start_position_y = 0
@@ -733,7 +733,7 @@ class Player(pygame.sprite.Sprite):
                         self.velocity.y -= 50
                     if self.velocity.y < -60:
                         self.velocity.y = -60
-                    pygame.mixer.find_channel(True).play(jump_sound)
+                    pygame.mixer.find_channel(True).play(squish_sound)
             else:#on land
                 if self.jump_button_pressed == False or self.jump_buffer <= 4:
                     self.jump_button_pressed = True
@@ -1995,6 +1995,7 @@ class Enemy(pygame.sprite.Sprite):
         self.enemy_type = enemy_type
 
         self.animation_frame = 0
+        self.animation_sub_frame = 0
         
         #hit boxes
         if self.enemy_type == 'goomba':
@@ -2121,45 +2122,39 @@ class Enemy(pygame.sprite.Sprite):
             
 
             #enemy animation
-            if pygame.time.get_ticks() - shimmer_time >= shimmer_time_between_frames or self.turn == True:
-                if self.enemy_type == 'goomba':
-                    self.animation_frame += 1
-                    if self.animation_frame > len(goomba_image_list[general.under_ground_color_pallete]) -1:
-                        self.animation_frame = 0
-                    if self.position.y < 640:#above ground
-                        self.image = goomba_image_list[general.color_pallete][self.animation_frame]
-                    else:#under ground
-                        self.image = goomba_image_list[general.under_ground_color_pallete][self.animation_frame]
+            self.animation_sub_frame += 1
+            if self.animation_sub_frame >= 8:
+                self.animation_sub_frame = 0
+                self.animation_frame +=1
+                if self.animation_frame >= 2:
+                    self.animation_frame = 0
 
-                elif self.enemy_type == 'green koopa':
-                    self.animation_frame += 1
-                    if self.animation_frame > len(green_koopa_left_image_list[general.under_ground_color_pallete]) -1:
-                        self.animation_frame = 0
-                    if self.position.y < 640:#above ground
-                        if self.direction == 'left':
-                            self.image = green_koopa_left_image_list[general.color_pallete][self.animation_frame]
-                        elif self.direction == 'right':
-                            self.image = green_koopa_right_image_list[general.color_pallete][self.animation_frame]
-                    else:#under ground
-                        if self.direction == 'left':
-                            self.image = green_koopa_left_image_list[general.under_ground_color_pallete][self.animation_frame]
-                        elif self.direction == 'right':
-                            self.image = green_koopa_right_image_list[general.under_ground_color_pallete][self.animation_frame]
+            if self.enemy_type == 'goomba':
+                if self.position.y < 640:#above ground
+                    self.image = goomba_image_list[general.color_pallete][self.animation_frame]
+                else:#under ground
+                    self.image = goomba_image_list[general.under_ground_color_pallete][self.animation_frame]
 
-                elif self.enemy_type == 'red koopa':
-                    self.animation_frame += 1
-                    if self.animation_frame > len(red_koopa_left_image_list) -1:
-                        self.animation_frame = 0
+            elif self.enemy_type == 'green koopa':
+                if self.position.y < 640:#above ground
                     if self.direction == 'left':
-                        self.image = red_koopa_left_image_list[self.animation_frame]
+                        self.image = green_koopa_left_image_list[general.color_pallete][self.animation_frame]
                     elif self.direction == 'right':
-                        self.image = red_koopa_right_image_list[self.animation_frame]
-                
-                self.turn = False
+                        self.image = green_koopa_right_image_list[general.color_pallete][self.animation_frame]
+                else:#under ground
+                    if self.direction == 'left':
+                        self.image = green_koopa_left_image_list[general.under_ground_color_pallete][self.animation_frame]
+                    elif self.direction == 'right':
+                        self.image = green_koopa_right_image_list[general.under_ground_color_pallete][self.animation_frame]
 
-            if self.direction == 'left':
-                if self.image == red_koopa_right_image_list[self.animation_frame]:
-                    print('wtf')
+            elif self.enemy_type == 'red koopa':
+                if self.direction == 'left':
+                    self.image = red_koopa_left_image_list[self.animation_frame]
+                elif self.direction == 'right':
+                    self.image = red_koopa_right_image_list[self.animation_frame]
+            
+            self.turn = False
+            #
             
             if self.enemy_type == 'red koopa' or self.enemy_type == 'green koopa':
                 self.hurt_box.x = self.rect.x - 2
@@ -2333,6 +2328,7 @@ class Pirhana_plant(pygame.sprite.Sprite):
         self.enemy_type = 'pirhana plant'
 
         self.animation_frame = 0
+        self.animation_sub_frame = 0
 
         self.width = 12
         self.height = 10
@@ -2410,10 +2406,11 @@ class Pirhana_plant(pygame.sprite.Sprite):
             self.rect.x = self.position[0]
             self.rect.y = self.position[1]
                 
-        if pygame.time.get_ticks() - shimmer_time >= shimmer_time_between_frames:
-            if self.animation_frame == 0:
-                self.animation_frame = 1
-            elif self.animation_frame == 1:
+        self.animation_sub_frame += 1
+        if self.animation_sub_frame >= 8:
+            self.animation_sub_frame = 0
+            self.animation_frame +=1
+            if self.animation_frame >= 2:
                 self.animation_frame = 0
 
         if self.pipe.direction == 'up':
@@ -2501,7 +2498,7 @@ class Cheepcheep(pygame.sprite.Sprite):
         self.width = 10
         self.height = 6
         self.image = pygame.Surface((self.width, self.height))
-        self.rect = self.image.get_rect(topleft = position)
+        self.rect = self.image.get_rect(topleft = (position.x + 3, position.y + 4))
         self.position_rect = self.image.get_rect(topleft = position)
 
         self.hit_box_image = pygame.Surface((self.width, self.height))
@@ -2531,8 +2528,8 @@ class Cheepcheep(pygame.sprite.Sprite):
         elif not self.position_rect.colliderect(camera.respawn_rect):
             self.go = False
             self.direction = 'left'
-            self.rect.x = self.position.x
-            self.rect.y = self.position.y
+            self.rect.x = self.position.x + 3
+            self.rect.y = self.position.y + 4
 
         if self.go == True:
             #while in water
@@ -2582,6 +2579,11 @@ class Cheepcheep(pygame.sprite.Sprite):
                 self.direction = 'left'
             elif self.block_direction == 'left':
                 self.direction ='right'
+            if enemy_on_enemy_collision(self, self.velocity.x, self.velocity.y) == True:
+                if self.velocity.x > 0:
+                    self.direction = 'left'
+                if self.velocity.x < 0:
+                    self.direction = 'right'
             self.hurt_box.x = self.rect.x - 3
             self.hurt_box.y = self.rect.y - 8
 
@@ -2813,7 +2815,7 @@ class Bowser(pygame.sprite.Sprite):
                     #print(self.action)
                     if self.standing == True:
                         if random.randint(0, 2) == 0:
-                            self.velocity.y = -120#jump
+                            self.velocity.y = -90#jump
                             self.jumping = True
                             self.standing = False
                             self.action = random.randint(0, 1)
@@ -3958,7 +3960,7 @@ def unload_level():
         sprite.kill()
 
 def handle_music():
-    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.set_volume(0.0)
     if general.level_type  == 'ground':
         pygame.mixer.music.load("musik\\Running About.mp3")
         pygame.mixer.music.play(-1)
@@ -3977,6 +3979,7 @@ def handle_music():
     if player.star_power == True:
         pygame.mixer.music.load("musik\\Invincible.mp3")
         pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(1.0)
 
 def crouch_unstuck_left():
         for block in all_block_group:
@@ -4001,8 +4004,6 @@ def dead():
     player.just_died = True
     player.dead = False
     handle_music()
-    #pygame.mixer.music.set_volume(1.0)
-
     unload_level()
     load_level()
     for checkpoint in checkpoint_group:
@@ -4019,6 +4020,8 @@ def death_animation():
     if player.just_died == True:
         player.just_died = False
         player.image = mario_death_image[player.star_power_frame]
+        player.death_image_rect = player.image.get_rect(topleft = player.rect.topleft)
+        player.death_image_rect.y -= 3
         player.velocity.y = -148
         pygame.mixer.music.set_volume(0.0)
         pygame.mixer.find_channel(True).play(death_sound)
@@ -4026,21 +4029,20 @@ def death_animation():
     player.velocity.y += 8
     if player.velocity.y >= 74:
         player.velocity.y = 74
-    player.sub_position_y += player.velocity.y
-    while player.sub_position_y >= 16:
-        player.rect.y += 1
-        player.sub_position_y -= 16
-    while player.sub_position_y <= -16:
-        player.rect.y -= 1
-        player.sub_position_y += 16
+    if player.death_image_rect.colliderect(camera.rect):
+        player.sub_position_y += player.velocity.y
+        while player.sub_position_y >= 16:
+            player.rect.y += 1
+            player.death_image_rect.y += 1
+            player.sub_position_y -= 16
+        while player.sub_position_y <= -16:
+            player.rect.y -= 1
+            player.death_image_rect.y -= 1
+            player.sub_position_y += 16
 
     if player.death_animation_frame >= 180:
         player.death_animation_frame = 0
         dead()
-    #if player.rect.top > screen_Height and player.rect.top < 600:
-    #    dead()
-    #elif player.rect.top > screen_Height + 640 and player.rect.top < 1240:
-    #    dead()
     
 
 #create groups 
@@ -4210,7 +4212,8 @@ while running:
         elif sprite.enemy_type == 'pirhana plant':
             screen_sprite.image.blit(sprite.image, (sprite.rect.x - camera.position.x - 2, sprite.rect.y - camera.position.y - 14))
         elif sprite.enemy_type == 'cheepcheep':
-            screen_sprite.image.blit(sprite.image, (sprite.rect.x - camera.position.x - 3, sprite.rect.y - camera.position.y))
+            screen_sprite.image.blit(sprite.image, (sprite.rect.x - camera.position.x - 3, sprite.rect.y - camera.position.y - 6))
+            #screen_sprite.image.blit(sprite.hit_box_image, (sprite.rect.x - camera.position.x, sprite.rect.y - camera.position.y))
         elif sprite.enemy_type == 'blooper':
             screen_sprite.image.blit(sprite.image, (sprite.rect.x - camera.position.x - 3, sprite.rect.y - camera.position.y - 8))
     for sprite in bowser_fire_group:
